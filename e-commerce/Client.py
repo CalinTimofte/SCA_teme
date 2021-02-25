@@ -1,4 +1,8 @@
 import socket
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
 
 
 def send_message_1(client_socket):
@@ -34,6 +38,5 @@ def client_program():
 
     merchant_socket.close()  # close the connection
 
-
-if __name__ == '__main__':
-    client_program()
+# if __name__ == '__main__':
+#     client_program()
