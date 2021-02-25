@@ -1,4 +1,17 @@
 import socket
+from cryptography.hazmat.primitives import serialization
+
+#RSA keys
+with open("Keys/pg_rsa_priv_key.txt", "rb") as key_file:
+    private_key_rsa = serialization.load_pem_private_key(
+        key_file.read(),
+        password=None,
+    )
+
+with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa = serialization.load_pem_public_key(
+        key_file.read()
+    )
 
 
 def recv_message_4(merchant_conn):
@@ -30,5 +43,5 @@ def server_program():
     merchant_conn.close()  # close the connection
 
 
-if __name__ == '__main__':
-    server_program()
+# if __name__ == '__main__':
+#     server_program()

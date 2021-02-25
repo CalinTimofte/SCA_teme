@@ -1,5 +1,20 @@
 import socket
+from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
 
+#RSA keys
+with open("Keys/merchant_rsa_priv_key.txt", "rb") as key_file:
+    private_key_rsa = serialization.load_pem_private_key(
+        key_file.read(),
+        password=None,
+    )
+
+with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa = serialization.load_pem_public_key(
+        key_file.read()
+    )
 
 def recv_message_1(client_conn):
     pass
@@ -58,5 +73,5 @@ def server_program():
     client_conn.close()  # close the connection
 
 
-if __name__ == '__main__':
-    server_program()
+# if __name__ == '__main__':
+#     server_program()
