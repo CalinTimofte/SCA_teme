@@ -21,18 +21,18 @@ def client_program():
     host = socket.gethostname()  # as both code is running on same pc
     port = 5000  # socket server port number
 
-    client_socket = socket.socket()  # instantiate
-    client_socket.connect((host, port))  # connect to the server
+    merchant_socket = socket.socket()  # instantiate
+    merchant_socket.connect((host, port))  # connect to the server
 
     # Setup sub-protocol
-    send_message_1(client_socket)
-    recv_message_2(client_socket)
+    send_message_1(merchant_socket)
+    recv_message_2(merchant_socket)
 
     # Exchange sub-protocol
-    send_message_3(client_socket)
-    recv_message_6(client_socket)
+    send_message_3(merchant_socket)
+    recv_message_6(merchant_socket)
 
-    client_socket.close()  # close the connection
+    merchant_socket.close()  # close the connection
 
 
 if __name__ == '__main__':
