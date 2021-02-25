@@ -9,6 +9,10 @@ def send_message_2(client_conn):
     pass
 
 
+def recv_message_3(client_conn):
+    pass
+
+
 def send_message_4(pg_socket):
     pass
 
@@ -45,6 +49,7 @@ def server_program():
     pg_socket = socket.socket()  # instantiate
     pg_socket.connect((host, pg_port))  # connect to the server
 
+    recv_message_3(client_conn)
     send_message_4(pg_socket)
     recv_message_5(pg_socket)
     send_message_6(client_conn)
