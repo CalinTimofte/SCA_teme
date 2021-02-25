@@ -1,6 +1,22 @@
 import socket
 
 
+def send_message_1(client_socket):
+    pass
+
+
+def recv_message_2(client_socket):
+    pass
+
+
+def send_message_3(client_socket):
+    pass
+
+
+def recv_message_6(client_socket):
+    pass
+
+
 def client_program():
     host = socket.gethostname()  # as both code is running on same pc
     port = 5000  # socket server port number
@@ -8,15 +24,13 @@ def client_program():
     client_socket = socket.socket()  # instantiate
     client_socket.connect((host, port))  # connect to the server
 
-    message = input(" -> ")  # take input
+    # Setup sub-protocol
+    send_message_1(client_socket)
+    recv_message_2(client_socket)
 
-    while message.lower().strip() != 'bye':
-        client_socket.send(message.encode())  # send message
-        data = client_socket.recv(1024).decode()  # receive response
-
-        print('Received from server: ' + data)  # show in terminal
-
-        message = input(" -> ")  # again take input
+    # Exchange sub-protocol
+    send_message_3(client_socket)
+    recv_message_6(client_socket)
 
     client_socket.close()  # close the connection
 
