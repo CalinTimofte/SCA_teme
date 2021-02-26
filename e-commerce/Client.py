@@ -1,5 +1,6 @@
 import socket, datetime
 from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import padding as sym_padding
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -23,6 +24,35 @@ with open("Keys/client_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_merchant = serialization.load_pem_public_key(
+        key_file.read()
+    )
+
+def pad_data_for_AES(data):
+    padder = sym_padding.PKCS7(128).padder()
+    padded_data = padder.update(data)
+    padded_data += padder.finalize()
+    return padded_data
+
+def unpad_data_for_AES(padded_data):
+    unpadder = sym_padding.PKCS7(128).unpadder()
+    data = unpadder.update(padded_data)
+    data += unpadder.finalize()
+    return data
+
+def encrypt_AES(plaintext):
+    plaintext = pad_data_for_AES(plaintext)
+    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv))
+    encryptor = cipher.encryptor()
+    return encryptor.update(plaintext) + encryptor.finalize()
+
+
+def decrypt_AES(ciphertext):
+    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv))
+    decryptor = cipher.decryptor()
+    padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    return unpad_data_for_AES(padded_plaintext)
 
 def generate_cert_client():
     subject = issuer = x509.Name([
@@ -56,12 +86,11 @@ def serialize_cert(cert):
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-print(generate_cert_client())
-
-
 def send_message_1(client_socket):
-    pass
+    print(serialize_cert(generate_cert_client()))
 
+
+# send_message_1(None)
 
 def recv_message_2(client_socket):
     pass
