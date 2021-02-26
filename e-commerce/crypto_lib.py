@@ -102,3 +102,9 @@ def verify_signature_is_valid(signature, message,  key):
         return True
     except:
         return False
+
+def int_to_bytes(num):
+    return num.to_bytes(num.bit_length(), 'big')
+
+def bytes_to_int(num):
+    return int.from_bytes(num, 'big')
