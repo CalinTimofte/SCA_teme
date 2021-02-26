@@ -17,11 +17,17 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
-def deserialize_client_cert(cert):
-    return x509.load_pem_x509_certificate(cert, default_backend())
+def merchant_send(socket, message):
+    socket.send(message)
+
+
+def merchant_recv(socket):
+    message = socket.recv(8192)
+    print(message)
 
 def recv_message_1(client_conn):
-    pass
+    message = merchant_recv(client_conn)
+
 
 
 def send_message_2(client_conn):
@@ -65,17 +71,17 @@ def server_program():
 
     # Exchange sub-protocol
     # Open connection to PG
-    pg_socket = socket.socket()  # instantiate
-    pg_socket.connect((host, pg_port))  # connect to the server
+    # pg_socket = socket.socket()  # instantiate
+    # pg_socket.connect((host, pg_port))  # connect to the server
+    #
+    # recv_message_3(client_conn)
+    # send_message_4(pg_socket)
+    # recv_message_5(pg_socket)
+    # send_message_6(client_conn)
 
-    recv_message_3(client_conn)
-    send_message_4(pg_socket)
-    recv_message_5(pg_socket)
-    send_message_6(client_conn)
-
-    pg_socket.close()
+    # pg_socket.close()
     client_conn.close()  # close the connection
 
 
-# if __name__ == '__main__':
-#     server_program()
+if __name__ == '__main__':
+    server_program()

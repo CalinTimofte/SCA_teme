@@ -1,13 +1,9 @@
 import socket, datetime
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import padding as sym_padding
-from cryptography.hazmat.backends import default_backend
+import crypto_lib
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 # AES keys
 aes_key = b'$P\xb5I8\xcb\xd2y\xa7\xad\x8c\xb3\xb7Se\xed\xe1|\xeeu\x9e\x8f\x0f8{\xa9{sO\xc1\xfdL'
@@ -29,58 +25,6 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa_merchant = serialization.load_pem_public_key(
         key_file.read()
     )
-
-
-def pad_data_for_AES(data):
-    padder = sym_padding.PKCS7(128).padder()
-    padded_data = padder.update(data)
-    padded_data += padder.finalize()
-    return padded_data
-
-
-def unpad_data_for_AES(padded_data):
-    unpadder = sym_padding.PKCS7(128).unpadder()
-    data = unpadder.update(padded_data)
-    data += unpadder.finalize()
-    return data
-
-
-def encrypt_AES(plaintext):
-    plaintext = pad_data_for_AES(plaintext)
-    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv))
-    encryptor = cipher.encryptor()
-    return encryptor.update(plaintext) + encryptor.finalize()
-
-
-def decrypt_AES(ciphertext):
-    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv))
-    decryptor = cipher.decryptor()
-    padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
-    return unpad_data_for_AES(padded_plaintext)
-
-
-def encrypt_RSA(plaintext, key):
-    ciphertext = key.encrypt(
-        plaintext,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return ciphertext
-
-
-def decrypt_RSA(ciphertext, key):
-    plaintext = key.decrypt(
-        ciphertext,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return plaintext
 
 
 def generate_cert_client():
@@ -111,32 +55,25 @@ def generate_cert_client():
     return cert
 
 
-def serialize_cert(cert):
-    return cert.public_bytes(serialization.Encoding.PEM)
-
-
-def deserialize_client_cert(cert):
-    return x509.load_pem_x509_certificate(cert, default_backend())
-
-
 def client_send(socket, message):
-    socket.send(message.encode())
+    socket.send(message)
 
 
 def client_recv(socket):
-    message = socket.recv(8192).decode()
+    message = socket.recv(8192)
     return message
 
 
 def send_message_1(client_socket):
     client_temporary_cert = generate_cert_client()
-    cert_to_send = serialize_cert(client_temporary_cert)
-    encrypted_cert_to_send = encrypt_AES(cert_to_send)
+    cert_to_send = crypto_lib.serialize_cert(client_temporary_cert)
+    encrypted_cert_to_send = crypto_lib.encrypt_AES(cert_to_send, aes_key, aes_iv)
     # I use the b"END" to be able to split concatenated strings on arrival
     message_to_send = encrypted_cert_to_send + b"END"
-    encrypted_aes_key = encrypt_RSA(aes_key, public_key_rsa)
+    encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
     message_to_send += encrypted_aes_key
-    return message_to_send
+    print(message_to_send)
+    client_send(client_socket, message_to_send)
 
 
 def recv_message_2(client_socket):
@@ -168,5 +105,5 @@ def client_program():
 
     merchant_socket.close()  # close the connection
 
-# if __name__ == '__main__':
-#     client_program()
+if __name__ == '__main__':
+    client_program()
