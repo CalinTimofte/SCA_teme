@@ -1,4 +1,6 @@
 import socket
+import socket_functions
+import crypto_lib
 from cryptography.hazmat.primitives import serialization
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -17,16 +19,9 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
-def merchant_send(socket, message):
-    socket.send(message)
-
-
-def merchant_recv(socket):
-    message = socket.recv(8192)
-    print(message)
-
 def recv_message_1(client_conn):
-    message = merchant_recv(client_conn)
+    message = socket_functions.socket_recv(client_conn)
+    print(message)
 
 
 

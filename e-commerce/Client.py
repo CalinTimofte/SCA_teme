@@ -1,5 +1,7 @@
-import socket, datetime
+import socket
+import datetime
 import crypto_lib
+import socket_functions
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -55,15 +57,6 @@ def generate_cert_client():
     return cert
 
 
-def client_send(socket, message):
-    socket.send(message)
-
-
-def client_recv(socket):
-    message = socket.recv(8192)
-    return message
-
-
 def send_message_1(client_socket):
     client_temporary_cert = generate_cert_client()
     cert_to_send = crypto_lib.serialize_cert(client_temporary_cert)
@@ -73,7 +66,7 @@ def send_message_1(client_socket):
     encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
     message_to_send += encrypted_aes_key
     print(message_to_send)
-    client_send(client_socket, message_to_send)
+    socket_functions.socket_send(client_socket, message_to_send)
 
 
 def recv_message_2(client_socket):
@@ -104,6 +97,7 @@ def client_program():
     recv_message_6(merchant_socket)
 
     merchant_socket.close()  # close the connection
+
 
 if __name__ == '__main__':
     client_program()
