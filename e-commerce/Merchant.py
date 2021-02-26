@@ -1,6 +1,7 @@
 import socket
 from cryptography.hazmat.primitives import serialization
 from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 
@@ -15,6 +16,9 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa = serialization.load_pem_public_key(
         key_file.read()
     )
+
+def deserialize_client_cert(cert):
+    return x509.load_pem_x509_certificate(cert, default_backend())
 
 def recv_message_1(client_conn):
     pass

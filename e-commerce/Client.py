@@ -47,9 +47,16 @@ def generate_cert_client():
     ).add_extension(
         x509.SubjectAlternativeName([x509.DNSName(u"localhost")]),
         critical=False
-    ).sign(private_key_rsa, hashes.SHA256())
+    ).public_key(public_key_rsa).sign(private_key_rsa, hashes.SHA256())
 
-    print(cert.public_bytes(serialization.Encoding.PEM))
+    return cert
+
+
+def serialize_cert(cert):
+    return cert.public_bytes(serialization.Encoding.PEM)
+
+
+print(generate_cert_client())
 
 
 def send_message_1(client_socket):
