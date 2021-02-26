@@ -1,6 +1,7 @@
 import socket, datetime
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -29,17 +30,20 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+
 def pad_data_for_AES(data):
     padder = sym_padding.PKCS7(128).padder()
     padded_data = padder.update(data)
     padded_data += padder.finalize()
     return padded_data
 
+
 def unpad_data_for_AES(padded_data):
     unpadder = sym_padding.PKCS7(128).unpadder()
     data = unpadder.update(padded_data)
     data += unpadder.finalize()
     return data
+
 
 def encrypt_AES(plaintext):
     plaintext = pad_data_for_AES(plaintext)
@@ -53,6 +57,31 @@ def decrypt_AES(ciphertext):
     decryptor = cipher.decryptor()
     padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
     return unpad_data_for_AES(padded_plaintext)
+
+
+def encrypt_RSA(plaintext, key):
+    ciphertext = key.encrypt(
+        plaintext,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return ciphertext
+
+
+def decrypt_RSA(ciphertext, key):
+    plaintext = key.decrypt(
+        ciphertext,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return plaintext
+
 
 def generate_cert_client():
     subject = issuer = x509.Name([
@@ -86,8 +115,15 @@ def serialize_cert(cert):
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
+def deserialize_client_cert(cert):
+    return x509.load_pem_x509_certificate(cert, default_backend())
+
+
 def send_message_1(client_socket):
-    print(serialize_cert(generate_cert_client()))
+    client_temporary_cert = generate_cert_client()
+    cert_to_send = serialize_cert(client_temporary_cert)
+    encrypted_cert_to_send = encrypt_AES(cert_to_send)
+    print(((encrypted_cert_to_send + b"END" + b"message").split(b"END")[0]))
 
 
 # send_message_1(None)
