@@ -6,8 +6,9 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
+import random
 
-#RSA keys
+# RSA keys
 with open("Keys/merchant_rsa_priv_key.txt", "rb") as key_file:
     private_key_rsa = serialization.load_pem_private_key(
         key_file.read(),
@@ -18,6 +19,12 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa = serialization.load_pem_public_key(
         key_file.read()
     )
+
+
+def generate_SID():
+    SID = random.randint(100000, 10000000000)
+    return crypto_lib.int_to_bytes(SID)
+
 
 def recv_message_1(client_conn):
     message = socket_functions.socket_recv(client_conn)
@@ -80,7 +87,6 @@ def server_program():
 
     # pg_socket.close()
     client_conn.close()  # close the connection
-
 
 if __name__ == '__main__':
     server_program()
