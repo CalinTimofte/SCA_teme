@@ -61,12 +61,9 @@ def send_message_1(client_socket):
     client_temporary_cert = generate_cert_client()
     cert_to_send = crypto_lib.serialize_cert(client_temporary_cert)
     encrypted_cert_to_send = crypto_lib.encrypt_AES(cert_to_send, aes_key, aes_iv)
-    # I use the b"END" to be able to split concatenated strings on arrival
-    message_to_send = encrypted_cert_to_send + b"END"
     encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
-    message_to_send += encrypted_aes_key
-    message_to_send += b"END"
-    message_to_send += crypto_lib.encrypt_RSA(aes_iv, public_key_rsa_merchant)
+    encrypted_aes_iv = crypto_lib.encrypt_RSA(aes_iv, public_key_rsa_merchant)
+    message_to_send = socket_functions.concat_messages(encrypted_cert_to_send, encrypted_aes_key, encrypted_aes_iv)
     print(message_to_send)
     socket_functions.socket_send(client_socket, message_to_send)
 

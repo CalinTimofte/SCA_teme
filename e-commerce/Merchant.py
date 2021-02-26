@@ -21,7 +21,7 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
 
 def recv_message_1(client_conn):
     message = socket_functions.socket_recv(client_conn)
-    client_certificate, aes_key, aes_iv = message.split(b"END")
+    client_certificate, aes_key, aes_iv = socket_functions.split_message(message)
     aes_key = crypto_lib.decrypt_RSA(aes_key, private_key_rsa)
     aes_iv = crypto_lib.decrypt_RSA(aes_iv, private_key_rsa)
     client_certificate = crypto_lib.decrypt_AES(client_certificate, aes_key, aes_iv)
