@@ -36,8 +36,13 @@ def recv_message_1(client_conn):
     return client_certificate, aes_key, aes_iv
 
 
-def send_message_2(client_conn):
-    pass
+def send_message_2(client_conn, aes_key, aes_iv):
+    SID = generate_SID()
+    print(crypto_lib.bytes_to_int(SID))
+    SID_signature = crypto_lib.sign(SID, private_key_rsa)
+    message_to_send = socket_functions.concat_messages(SID, SID_signature)
+    encrypted_message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key, aes_iv)
+    socket_functions.socket_send(client_conn, encrypted_message_to_send)
 
 
 def recv_message_3(client_conn):
@@ -72,8 +77,8 @@ def server_program():
     print("Connection from: " + str(client_address))
 
     # Setup sub-protocol
-    recv_message_1(client_conn)
-    send_message_2(client_conn)
+    client_certificate, aes_key, aes_iv = recv_message_1(client_conn)
+    send_message_2(client_conn, aes_key, aes_iv)
 
     # Exchange sub-protocol
     # Open connection to PG
