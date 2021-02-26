@@ -119,6 +119,15 @@ def deserialize_client_cert(cert):
     return x509.load_pem_x509_certificate(cert, default_backend())
 
 
+def client_send(socket, message):
+    socket.send(message.encode())
+
+
+def client_recv(socket):
+    message = socket.recv(8192).decode()
+    return message
+
+
 def send_message_1(client_socket):
     client_temporary_cert = generate_cert_client()
     cert_to_send = serialize_cert(client_temporary_cert)
@@ -128,6 +137,7 @@ def send_message_1(client_socket):
     encrypted_aes_key = encrypt_RSA(aes_key, public_key_rsa)
     message_to_send += encrypted_aes_key
     return message_to_send
+
 
 def recv_message_2(client_socket):
     pass
