@@ -64,12 +64,18 @@ def send_message_1(client_socket):
     encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
     encrypted_aes_iv = crypto_lib.encrypt_RSA(aes_iv, public_key_rsa_merchant)
     message_to_send = socket_functions.concat_messages(encrypted_cert_to_send, encrypted_aes_key, encrypted_aes_iv)
-    print(message_to_send)
     socket_functions.socket_send(client_socket, message_to_send)
 
 
 def recv_message_2(client_socket):
-    pass
+    message = socket_functions.socket_recv(client_socket)
+    message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
+    merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
+    print(crypto_lib.bytes_to_int(merchant_SID))
+    if crypto_lib.verify_signature_is_valid(merchant_SID_signature, merchant_SID, public_key_rsa_merchant):
+        print("The signature is from the merchant")
+    else:
+        print("The signature is invalid")
 
 
 def send_message_3(client_socket):
