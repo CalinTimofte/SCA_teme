@@ -65,6 +65,8 @@ def send_message_1(client_socket):
     message_to_send = encrypted_cert_to_send + b"END"
     encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
     message_to_send += encrypted_aes_key
+    message_to_send += b"END"
+    message_to_send += crypto_lib.encrypt_RSA(aes_iv, public_key_rsa_merchant)
     print(message_to_send)
     socket_functions.socket_send(client_socket, message_to_send)
 
