@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import utils
 
 
 def pad_data_for_AES(data):
@@ -58,9 +59,46 @@ def decrypt_RSA(ciphertext, key):
     )
     return plaintext
 
+
 def serialize_cert(cert):
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
 def deserialize_cert(cert):
     return x509.load_pem_x509_certificate(cert, default_backend())
+
+
+def hash(message):
+    chosen_hash = hashes.SHA256()
+    hasher = hashes.Hash(chosen_hash)
+    hasher.update(message)
+    digest = hasher.finalize()
+    return (digest)
+
+
+def sign(message, key):
+    sig = key.sign(
+        message,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    return sig
+
+
+def verify_signature_is_valid(signature, message,  key):
+    try:
+        key.verify(
+            signature,
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return True
+    except:
+        return False
