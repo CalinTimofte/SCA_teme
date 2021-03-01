@@ -37,6 +37,7 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+
 def generate_cert_client():
     subject = issuer = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME, u"US"),
@@ -73,6 +74,7 @@ def send_message_1(client_socket):
     encrypted_aes_iv = crypto_lib.encrypt_RSA(aes_iv_merchant, public_key_rsa_merchant)
     message_to_send = socket_functions.concat_messages(encrypted_cert_to_send, encrypted_aes_key, encrypted_aes_iv)
     socket_functions.socket_send(client_socket, message_to_send)
+    return client_temporary_cert
 
 
 def recv_message_2(client_socket):
@@ -87,20 +89,24 @@ def recv_message_2(client_socket):
     return merchant_SID
 
 
-def send_message_3(client_socket, merchant_SID):
+def send_message_3(client_socket, merchant_SID, client_temporary_cert):
     NC = random.randint(100000, 10000000000)
-    PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_pub_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
-    SIG_PI= crypto_lib.sign(PI, private_key_rsa)
-    PM = socket_functions.concat_messages(PI , SIG_PI)
+    PI = socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500",
+                                          crypto_lib.serialize_cert(client_temporary_cert), crypto_lib.int_to_bytes(NC),
+                                          b"Merchant name")
+    SIG_PI = crypto_lib.sign(PI, private_key_rsa)
+    PM = socket_functions.concat_messages(PI, SIG_PI)
     encripted_PM = crypto_lib.encrypt_AES(PM, aes_key_PG, aes_iv_PG)
-    PO_message = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", crypto_lib.int_to_bytes(NC))
+    PO_message = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500",
+                                                  crypto_lib.int_to_bytes(NC))
     SigC = crypto_lib.sign(PO_message, private_key_rsa)
     PO = socket_functions.concat_messages(PO_message, SigC)
     encrypted_aes_key_PG = crypto_lib.encrypt_RSA(aes_key_merchant, public_key_rsa_pg)
     encrypted_aes_iv_PG = crypto_lib.encrypt_RSA(aes_iv_merchant, public_key_rsa_pg)
     message_to_send = socket_functions.concat_messages(encripted_PM, PO, encrypted_aes_key_PG, encrypted_aes_iv_PG)
-    message_to_send=crypto_lib.encrypt_AES(message_to_send, aes_key_merchant, aes_iv_merchant)
+    message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key_merchant, aes_iv_merchant)
     socket_functions.socket_send(client_socket, message_to_send)
+
 
 def recv_message_6(client_socket):
     pass
@@ -113,11 +119,11 @@ def client_program():
     merchant_socket.connect((host, port))  # connect to the server
     print(type(public_key_rsa))
     # Setup sub-protocol
-    send_message_1(merchant_socket)
+    client_temporary_cert = send_message_1(merchant_socket)
     merchant_SID = recv_message_2(merchant_socket)
 
     # Exchange sub-protocol
-    send_message_3(merchant_socket, merchant_SID)
+    send_message_3(merchant_socket, merchant_SID, client_temporary_cert)
     recv_message_6(merchant_socket)
 
     merchant_socket.close()  # close the connection
@@ -125,4 +131,3 @@ def client_program():
 
 if __name__ == '__main__':
     client_program()
-
