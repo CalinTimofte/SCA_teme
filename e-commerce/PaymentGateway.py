@@ -14,20 +14,20 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
-x = {
-    "client": 300,
-    "merchant": 5000
-}
+class TransactionSim:
+    def __init__(self):
+        self.bank_accounts = self.get_bank_accounts()
+        print(self.bank_accounts)
 
-y = json.dumps(x)
+    def get_bank_accounts(self):
+        with open("bank_accounts.json", "r") as updater:
+            return_obj = json.load(updater)
+        return return_obj
 
+    def update_bank_accounts(self):
+        pass
 
-def dump():
-    with open("bank_accounts.json", "w") as updater:
-        json.dump(y, updater)
-
-
-dump()
+Trans_sim = TransactionSim()
 
 
 def recv_message_4(merchant_conn):
