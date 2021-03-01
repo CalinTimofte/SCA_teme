@@ -1,7 +1,8 @@
 import socket
+import json
 from cryptography.hazmat.primitives import serialization
 
-#RSA keys
+# RSA keys
 with open("Keys/pg_rsa_priv_key.txt", "rb") as key_file:
     private_key_rsa = serialization.load_pem_private_key(
         key_file.read(),
@@ -12,6 +13,21 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa = serialization.load_pem_public_key(
         key_file.read()
     )
+
+x = {
+    "client": 300,
+    "merchant": 5000
+}
+
+y = json.dumps(x)
+
+
+def dump():
+    with open("bank_accounts.json", "w") as updater:
+        json.dump(y, updater)
+
+
+dump()
 
 
 def recv_message_4(merchant_conn):
@@ -41,7 +57,6 @@ def server_program():
     send_message_5(merchant_conn)
 
     merchant_conn.close()  # close the connection
-
 
 # if __name__ == '__main__':
 #     server_program()
