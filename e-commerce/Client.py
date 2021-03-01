@@ -72,7 +72,7 @@ def send_message_1(client_socket):
     socket_functions.socket_send(client_socket, message_to_send)
 
 
-def recv_message_2(client_socket, merchant_SID, merchant_SID_signature):
+def recv_message_2(client_socket):
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
     merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
@@ -81,9 +81,10 @@ def recv_message_2(client_socket, merchant_SID, merchant_SID_signature):
         print("The signature is from the merchant")
     else:
         print("The signature is invalid")
+    return merchant_SID
 
 
-def send_message_3(client_socket, merchant_SID, merchant_SID_signature):
+def send_message_3(client_socket, merchant_SID):
     NC = random.randint(100000, 10000000000)
     PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_pub_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
     SIG_PI= crypto_lib.sign(PI, private_key_rsa)
@@ -100,17 +101,15 @@ def recv_message_6(client_socket):
 def client_program():
     host = socket.gethostname()  # as both code is running on same pc
     port = 5000  # socket server port number
-    merchant_SID= b"0"
-    merchant_SID_signature = b"0"
     merchant_socket = socket.socket()  # instantiate
     merchant_socket.connect((host, port))  # connect to the server
     print(type(public_key_rsa))
     # Setup sub-protocol
     send_message_1(merchant_socket)
-    recv_message_2(merchant_socket, merchant_SID, merchant_SID_signature)
+    merchant_SID = recv_message_2(merchant_socket)
 
     # Exchange sub-protocol
-    send_message_3(merchant_socket, merchant_SID, merchant_SID_signature)
+    send_message_3(merchant_socket, merchant_SID)
     recv_message_6(merchant_socket)
 
     merchant_socket.close()  # close the connection
