@@ -9,8 +9,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 
 # AES keys
-aes_key = b'$P\xb5I8\xcb\xd2y\xa7\xad\x8c\xb3\xb7Se\xed\xe1|\xeeu\x9e\x8f\x0f8{\xa9{sO\xc1\xfdL'
-aes_iv = b'\xcd!9\xae\xc1\xd0/Yv\xc8\x02x\xdc\x89\xa9\xa6'
+aes_key_merchant = b'$P\xb5I8\xcb\xd2y\xa7\xad\x8c\xb3\xb7Se\xed\xe1|\xeeu\x9e\x8f\x0f8{\xa9{sO\xc1\xfdL'
+aes_iv_merchant = b'\xcd!9\xae\xc1\xd0/Yv\xc8\x02x\xdc\x89\xa9\xa6'
+
+aes_key_PG = b'\xf5\tq5}z9\x95\xf2\x0ce\x10\xa6nm\xb6mn\x9b\xa2\xf9\xb7\xd5}\x99\xd1\xd4\x97\xed\xa6\x98\x9c'
+aes_iv_PG = b'V\xd1\xeev\xe6\xb0o0\xdbF"\x1a\xf9\x1a\xd7\x00'
 
 # RSA keys
 with open("Keys/client_rsa_priv_key.txt", "rb") as key_file:
@@ -65,16 +68,16 @@ def generate_cert_client():
 def send_message_1(client_socket):
     client_temporary_cert = generate_cert_client()
     cert_to_send = crypto_lib.serialize_cert(client_temporary_cert)
-    encrypted_cert_to_send = crypto_lib.encrypt_AES(cert_to_send, aes_key, aes_iv)
-    encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key, public_key_rsa_merchant)
-    encrypted_aes_iv = crypto_lib.encrypt_RSA(aes_iv, public_key_rsa_merchant)
+    encrypted_cert_to_send = crypto_lib.encrypt_AES(cert_to_send, aes_key_merchant, aes_iv_merchant)
+    encrypted_aes_key = crypto_lib.encrypt_RSA(aes_key_merchant, public_key_rsa_merchant)
+    encrypted_aes_iv = crypto_lib.encrypt_RSA(aes_iv_merchant, public_key_rsa_merchant)
     message_to_send = socket_functions.concat_messages(encrypted_cert_to_send, encrypted_aes_key, encrypted_aes_iv)
     socket_functions.socket_send(client_socket, message_to_send)
 
 
 def recv_message_2(client_socket):
     message = socket_functions.socket_recv(client_socket)
-    message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
+    message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
     merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
     print(crypto_lib.bytes_to_int(merchant_SID))
     if crypto_lib.verify_signature_is_valid(merchant_SID_signature, merchant_SID, public_key_rsa_merchant):
@@ -89,9 +92,14 @@ def send_message_3(client_socket, merchant_SID):
     PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_pub_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
     SIG_PI= crypto_lib.sign(PI, private_key_rsa)
     PM = socket_functions.concat_messages(PI , SIG_PI)
-    encripted_PM = crypto_lib.encrypt_RSA(PM, public_key_rsa_pg)
-    PO = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", crypto_lib.int_to_bytes(NC),crypto_lib.sign(socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", NC), private_key_rsa))
-    message_to_send=crypto_lib.encrypt_AES(socket_functions.concat_messages(encripted_PM,PO),aes_key,aes_iv)
+    encripted_PM = crypto_lib.encrypt_AES(PM, aes_key_PG, aes_iv_PG)
+    PO_message = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", crypto_lib.int_to_bytes(NC))
+    SigC = crypto_lib.sign(PO_message, private_key_rsa)
+    PO = socket_functions.concat_messages(PO_message, SigC)
+    encrypted_aes_key_PG = crypto_lib.encrypt_RSA(aes_key_merchant, public_key_rsa_pg)
+    encrypted_aes_iv_PG = crypto_lib.encrypt_RSA(aes_iv_merchant, public_key_rsa_pg)
+    message_to_send = socket_functions.concat_messages(encripted_PM, PO, encrypted_aes_key_PG, encrypted_aes_iv_PG)
+    message_to_send=crypto_lib.encrypt_AES(message_to_send, aes_key_merchant, aes_iv_merchant)
     socket_functions.socket_send(client_socket, message_to_send)
 
 def recv_message_6(client_socket):

@@ -51,7 +51,7 @@ def send_message_2(client_conn, aes_key, aes_iv):
 def recv_message_3(client_conn, aes_key, aes_iv):
     message = socket_functions.socket_recv(client_conn)
     message = crypto_lib.decrypt_AES(message, aes_key, aes_iv )
-    PM, OrderDesc, SID, amount, NC, sig_PO = socket_functions.split_message(message)
+    PM, OrderDesc, SID, amount, NC, sig_PO, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted = socket_functions.split_message(message)
     checkSid= socket_functions.concat_messages(OrderDesc, SID, amount, NC)
     if crypto_lib.verify_signature_is_valid(sig_PO, checkSid, public_key_rsa_client):
         print("The signature is from the client ")
