@@ -24,6 +24,15 @@ with open("Keys/client_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_pg = serialization.load_pem_public_key(
+        key_file.read()
+    )
+
+# AES keys
+aes_key_merchant_pg = b'\xce\x05S\x94\xd2\xf9\xffs\x1d\xb9\xe2\xdc\x14a(\xb5\xac!\xe9\xa2\xc1d\xc1"\x9f\xb3\x9c\x99\xc5\x91\xb9\x9a'
+aes_iv_merchant_pg = b'\xa8ff\xd1y\x97\xdaNP\xaf\xe1\xb5GS\xec\xed'
+
 
 def generate_SID():
     SID = random.randint(100000, 10000000000)
@@ -60,14 +69,17 @@ def recv_message_3(client_conn, aes_key, aes_iv):
         print("The signature is from the client ")
     else:
         print("The signature is invalid")
-    return PM, amount
+    return PM, amount, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted
 
 
-def send_message_4(pg_socket, PM, SID, amount, client_certificate):
+def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted):
     sigM = crypto_lib.sign(socket_functions.concat_messages(SID, client_certificate, amount), private_key_rsa)
-    message_to_send = socket_functions.concat_messages(Pm, sigM)
-    # cript message to send
-    socket_functions.socket_send(client_socket, message_to_send)
+    message_to_send = socket_functions.concat_messages(PM, sigM, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted)
+    encrypted_aes_key_PG = crypto_lib.encrypt_RSA(aes_key_merchant_pg, public_key_rsa_pg)
+    encrypted_aes_iv_PG = crypto_lib.encrypt_RSA(aes_iv_merchant_pg, public_key_rsa_pg)
+    message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key_merchant_pg, aes_iv_merchant_pg)
+    message_to_send = socket_functions.concat_messages(message_to_send, encrypted_aes_key_PG, encrypted_aes_iv_PG)
+    socket_functions.socket_send(pg_socket, message_to_send)
 
 
 def recv_message_5(pg_socket):
@@ -94,16 +106,16 @@ def server_program():
     print("Connection from: " + str(client_address))
 
     # Setup sub-protocol
-    client_certificate, aes_key, aes_iv = recv_message_1(client_conn)
-    SID = send_message_2(client_conn, aes_key, aes_iv)
+    client_certificate, aes_key_client_merchant, aes_iv_client_merchant = recv_message_1(client_conn)
+    SID = send_message_2(client_conn, aes_key_client_merchant, aes_iv_client_merchant)
 
     # Exchange sub-protocol
     # Open connection to PG
     pg_socket = socket.socket()  # instantiate
     pg_socket.connect((host, pg_port))  # connect to the server
     #
-    PM, amount = recv_message_3(client_conn, aes_key, aes_iv)
-    send_message_4(pg_socket, PM, SID, amount, client_certificate)
+    PM, amount, aes_key_client_PG_encrypted,  aes_iv_client_PG_encrypted = recv_message_3(client_conn, aes_key_client_merchant, aes_iv_client_merchant)
+    send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted)
 
     # recv_message_5(pg_socket)
     # send_message_6(client_conn)
