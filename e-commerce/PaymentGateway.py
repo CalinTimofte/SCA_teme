@@ -1,5 +1,7 @@
 import socket
 import json
+import socket_functions
+import crypto_lib
 from cryptography.hazmat.primitives import serialization
 
 # RSA keys
@@ -14,6 +16,7 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+<<<<<<< Updated upstream
 # class TransactionSim:
 #     def __init__(self):
 #         self.bank_accounts = self.get_bank_accounts()
@@ -28,11 +31,32 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
 #         pass
 #
 # Trans_sim = TransactionSim()
+=======
+
+class TransactionSim:
+    def __init__(self):
+        self.bank_accounts = self.get_bank_accounts()
+        print(self.bank_accounts)
+
+    def get_bank_accounts(self):
+        with open("bank_accounts.json", "r") as updater:
+            return_obj = json.load(updater)
+        return return_obj
+
+    def update_bank_accounts(self):
+        pass
+
+
+Trans_sim = TransactionSim()
+>>>>>>> Stashed changes
 
 
 def recv_message_4(merchant_conn):
-    pass
-
+    message = socket_functions.socket_recv(merchant_conn)
+    #decrypt message as decripted_message
+    PM,sigM=socket_functions.split_message(decripted_message)
+    #decript PM as PM_decripted
+    PI,sigPI= socket_functions.split_message(PM_decripted)
 
 def send_message_5(merchant_conn):
     pass
@@ -57,7 +81,7 @@ def server_program():
     send_message_5(merchant_conn)
 
     merchant_conn.close()  # close the connection
-    
+
 
 if __name__ == '__main__':
     server_program()
