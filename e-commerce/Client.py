@@ -28,6 +28,7 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa_merchant = serialization.load_pem_public_key(
         key_file.read()
     )
+
 with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa_pg = serialization.load_pem_public_key(
         key_file.read()
@@ -84,7 +85,7 @@ def recv_message_2(client_socket, merchant_SID, merchant_SID_signature):
 
 def send_message_3(client_socket, merchant_SID, merchant_SID_signature):
     NC = random.randint(100000, 10000000000)
-    PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
+    PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_pub_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
     SIG_PI= crypto_lib.sign(PI, private_key_rsa)
     PM = socket_functions.concat_messages(PI , SIG_PI)
     encripted_PM = crypto_lib.encrypt_RSA(PM, public_key_rsa_pg)

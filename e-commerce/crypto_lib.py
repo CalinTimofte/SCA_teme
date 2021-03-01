@@ -47,11 +47,18 @@ def encrypt_RSA(plaintext, key):
     )
     return ciphertext
 
-def serialize_RSA_key(key):
+def serialize_priv_RSA_key(key):
     key_bytes = key.private_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
+    )
+    return key_bytes
+
+def serialize_pub_RSA_key(key):
+    key_bytes = key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
     return key_bytes
 
