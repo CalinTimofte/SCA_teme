@@ -1,3 +1,4 @@
+import random
 import socket
 import datetime
 import crypto_lib
@@ -27,7 +28,10 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa_merchant = serialization.load_pem_public_key(
         key_file.read()
     )
-
+with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_pg = serialization.load_pem_public_key(
+        key_file.read()
+    )
 
 def generate_cert_client():
     subject = issuer = x509.Name([
@@ -67,7 +71,7 @@ def send_message_1(client_socket):
     socket_functions.socket_send(client_socket, message_to_send)
 
 
-def recv_message_2(client_socket):
+def recv_message_2(client_socket, merchant_SID, merchant_SID_signature):
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
     merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
@@ -78,9 +82,15 @@ def recv_message_2(client_socket):
         print("The signature is invalid")
 
 
-def send_message_3(client_socket):
-    pass
-
+def send_message_3(client_socket, merchant_SID, merchant_SID_signature):
+    NC = random.randint(100000, 10000000000)
+    PI= socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500", crypto_lib.serialize_RSA_key(public_key_rsa), crypto_lib.int_to_bytes(NC), b"Merchant name")
+    SIG_PI= crypto_lib.sign(PI, private_key_rsa)
+    PM = socket_functions.concat_messages(PI , SIG_PI)
+    encripted_PM = crypto_lib.encrypt_RSA(PM, public_key_rsa_pg)
+    PO = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", crypto_lib.int_to_bytes(NC),crypto_lib.sign(socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500", NC), private_key_rsa))
+    message_to_send=crypto_lib.encrypt_AES(socket_functions.concat_messages(encripted_PM,PO),aes_key,aes_iv)
+    socket_functions.socket_send(client_socket, message_to_send)
 
 def recv_message_6(client_socket):
     pass
@@ -89,16 +99,17 @@ def recv_message_6(client_socket):
 def client_program():
     host = socket.gethostname()  # as both code is running on same pc
     port = 5000  # socket server port number
-
+    merchant_SID= b"0"
+    merchant_SID_signature = b"0"
     merchant_socket = socket.socket()  # instantiate
     merchant_socket.connect((host, port))  # connect to the server
-
+    print(type(public_key_rsa))
     # Setup sub-protocol
     send_message_1(merchant_socket)
-    recv_message_2(merchant_socket)
+    recv_message_2(merchant_socket, merchant_SID, merchant_SID_signature)
 
     # Exchange sub-protocol
-    send_message_3(merchant_socket)
+    send_message_3(merchant_socket, merchant_SID, merchant_SID_signature)
     recv_message_6(merchant_socket)
 
     merchant_socket.close()  # close the connection

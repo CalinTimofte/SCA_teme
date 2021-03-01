@@ -19,7 +19,10 @@ with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
     public_key_rsa = serialization.load_pem_public_key(
         key_file.read()
     )
-
+with open("Keys/client_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_client = serialization.load_pem_public_key(
+        key_file.read()
+    )
 
 def generate_SID():
     SID = random.randint(100000, 10000000000)
@@ -45,8 +48,15 @@ def send_message_2(client_conn, aes_key, aes_iv):
     socket_functions.socket_send(client_conn, encrypted_message_to_send)
 
 
-def recv_message_3(client_conn):
-    pass
+def recv_message_3(client_conn, aes_key, aes_iv):
+    message = socket_functions.socket_recv(client_conn)
+    message = crypto_lib.decrypt_AES(message, aes_key, aes_iv )
+    PM, OrderDesc, SID, amount, NC, sig_PO = socket_functions.split_message(message)
+    checkSid= socket_functions.concat_messages(OrderDesc, SID, amount, NC)
+    if crypto_lib.verify_signature_is_valid(sig_PO, checkSid, public_key_rsa_client):
+        print("The signature is from the client ")
+    else:
+        print("The signature is invalid")
 
 
 def send_message_4(pg_socket):
@@ -85,7 +95,7 @@ def server_program():
     # pg_socket = socket.socket()  # instantiate
     # pg_socket.connect((host, pg_port))  # connect to the server
     #
-    # recv_message_3(client_conn)
+    recv_message_3(client_conn, aes_key, aes_iv)
     # send_message_4(pg_socket)
     # recv_message_5(pg_socket)
     # send_message_6(client_conn)
