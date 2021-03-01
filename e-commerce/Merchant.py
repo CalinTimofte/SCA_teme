@@ -105,12 +105,12 @@ def server_program():
     PM, amount = recv_message_3(client_conn, aes_key, aes_iv)
     send_message_4(pg_socket, PM, SID, amount, client_certificate)
 
+    # recv_message_5(pg_socket)
+    # send_message_6(client_conn)
 
-# recv_message_5(pg_socket)
-# send_message_6(client_conn)
+    pg_socket.close()
+    client_conn.close()  # close the connection
 
-pg_socket.close()
-client_conn.close()  # close the connection
 
 if __name__ == '__main__':
     server_program()
