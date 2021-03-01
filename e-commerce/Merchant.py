@@ -65,9 +65,9 @@ def recv_message_3(client_conn, aes_key, aes_iv):
 
 def send_message_4(pg_socket, PM, SID, amount, client_certificate):
     sigM = crypto_lib.sign(socket_functions.concat_messages(SID, client_certificate, amount), private_key_rsa)
-    message_to_send = socket_functions.concat_messages(Pm, sigM)
+    message_to_send = socket_functions.concat_messages(PM, sigM)
     # cript message to send
-    socket_functions.socket_send(client_socket, message_to_send)
+    socket_functions.socket_send(pg_socket, message_to_send)
 
 
 def recv_message_5(pg_socket):
