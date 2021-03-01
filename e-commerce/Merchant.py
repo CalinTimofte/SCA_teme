@@ -73,7 +73,7 @@ def recv_message_3(client_conn, aes_key, aes_iv):
 
 
 def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted):
-    sigM = crypto_lib.sign(socket_functions.concat_messages(SID, client_certificate, amount), private_key_rsa)
+    sigM = crypto_lib.sign(socket_functions.concat_messages(SID, crypto_lib.serialize_cert(client_certificate), amount), private_key_rsa)
     message_to_send = socket_functions.concat_messages(PM, sigM, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted)
     encrypted_aes_key_PG = crypto_lib.encrypt_RSA(aes_key_merchant_pg, public_key_rsa_pg)
     encrypted_aes_iv_PG = crypto_lib.encrypt_RSA(aes_iv_merchant_pg, public_key_rsa_pg)

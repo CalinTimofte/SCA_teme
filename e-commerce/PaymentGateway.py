@@ -16,7 +16,6 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
-<<<<<<< Updated upstream
 # class TransactionSim:
 #     def __init__(self):
 #         self.bank_accounts = self.get_bank_accounts()
@@ -31,32 +30,21 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
 #         pass
 #
 # Trans_sim = TransactionSim()
-=======
 
-class TransactionSim:
-    def __init__(self):
-        self.bank_accounts = self.get_bank_accounts()
-        print(self.bank_accounts)
-
-    def get_bank_accounts(self):
-        with open("bank_accounts.json", "r") as updater:
-            return_obj = json.load(updater)
-        return return_obj
-
-    def update_bank_accounts(self):
-        pass
-
-
-Trans_sim = TransactionSim()
->>>>>>> Stashed changes
 
 
 def recv_message_4(merchant_conn):
     message = socket_functions.socket_recv(merchant_conn)
-    #decrypt message as decripted_message
-    PM,sigM=socket_functions.split_message(decripted_message)
-    #decript PM as PM_decripted
-    PI,sigPI= socket_functions.split_message(PM_decripted)
+    message, AES_key_PG_M, AES_IV_PG_M = socket_functions.split_message(message)
+    AES_key_PG_M = crypto_lib.decrypt_RSA(AES_key_PG_M, private_key_rsa)
+    AES_IV_PG_M = crypto_lib.decrypt_RSA(AES_IV_PG_M, private_key_rsa)
+    message = crypto_lib.decrypt_AES(message, AES_key_PG_M, AES_IV_PG_M)
+    PM, sigM, AES_key_PG_C, AES_IV_PG_C = socket_functions.split_message(message)
+    AES_key_PG_C = crypto_lib.decrypt_RSA(AES_key_PG_C, private_key_rsa)
+    AES_IV_PG_C = crypto_lib.decrypt_RSA(AES_IV_PG_C, private_key_rsa)
+    PM = crypto_lib.decrypt_AES(PM, AES_key_PG_C, AES_IV_PG_C)
+    print(PM)
+    print(sigM)
 
 def send_message_5(merchant_conn):
     pass
