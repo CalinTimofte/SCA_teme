@@ -57,6 +57,8 @@ def server_program():
     send_message_5(merchant_conn)
 
     merchant_conn.close()  # close the connection
+    
 
-# if __name__ == '__main__':
-#     server_program()
+main
+if __name__ == '__main__':
+    server_program()
