@@ -16,6 +16,7 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+
 class TransactionSim:
     def __init__(self):
         self.bank_accounts = self.get_bank_accounts()
@@ -25,20 +26,21 @@ class TransactionSim:
             return_list = json.load(balances)
         return return_list
 
+    def client_has_enough_balance(self, sum):
+        if self.bank_accounts[0][1] - sum >= 0:
+            return True
+        else:
+            return False
+
     def perform_transaction(self, sum):
         self.bank_accounts[0][1] -= sum
-        self. bank_accounts[1][1] += sum
+        self.bank_accounts[1][1] += sum
         with open("bank_accounts.json", "w") as balances:
             json.dump(self.bank_accounts, balances)
 
     def show_balance(self):
         print("Client balance is: " + str(self.bank_accounts[0][1]))
         print("Merchant balance is: " + str(self.bank_accounts[1][1]))
-
-trans_sim = TransactionSim()
-trans_sim.perform_transaction(100)
-trans_sim.show_balance()
-
 
 
 def recv_message_4(merchant_conn):
@@ -53,6 +55,7 @@ def recv_message_4(merchant_conn):
     PM = crypto_lib.decrypt_AES(PM, AES_key_PG_C, AES_IV_PG_C)
     print(PM)
     print(sigM)
+
 
 def send_message_5(merchant_conn):
     pass
@@ -78,6 +81,5 @@ def server_program():
 
     merchant_conn.close()  # close the connection
 
-
-# if __name__ == '__main__':
-#     server_program()
+if __name__ == '__main__':
+    server_program()
