@@ -119,6 +119,9 @@ def recv_message_4(merchant_conn):
         transaction_mock.show_balance()
         resp = b"Accepted, transaction performed"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
+    else:
+        resp = b"Denied, client doesn't have enough balance"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
 
 def send_message_5(merchant_conn, resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M):

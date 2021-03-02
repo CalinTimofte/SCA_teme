@@ -91,13 +91,14 @@ def recv_message_2(client_socket):
 
 def send_message_3(client_socket, merchant_SID, client_temporary_cert):
     NC = random.randint(100000, 10000000000)
-    PI = socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, b"500",
+    amount = b"500"
+    PI = socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, amount,
                                           crypto_lib.serialize_cert(client_temporary_cert), crypto_lib.int_to_bytes(NC),
                                           b"Merchant name")
     SIG_PI = crypto_lib.sign(PI, private_key_rsa)
     PM = socket_functions.concat_messages(PI, SIG_PI)
     encripted_PM = crypto_lib.encrypt_AES(PM, aes_key_PG, aes_iv_PG)
-    PO_message = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, b"500",
+    PO_message = socket_functions.concat_messages(b"5 morcovi la 10 lei kg", merchant_SID, amount,
                                                   crypto_lib.int_to_bytes(NC))
     SigC = crypto_lib.sign(PO_message, private_key_rsa)
     PO = socket_functions.concat_messages(PO_message, SigC)
@@ -106,10 +107,20 @@ def send_message_3(client_socket, merchant_SID, client_temporary_cert):
     message_to_send = socket_functions.concat_messages(encripted_PM, PO, encrypted_aes_key_PG, encrypted_aes_iv_PG)
     message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key_merchant, aes_iv_merchant)
     socket_functions.socket_send(client_socket, message_to_send)
+    return NC, amount
 
 
-def recv_message_6(client_socket):
-    pass
+def recv_message_6(client_socket, amount, NC):
+    message = socket_functions.socket_recv(client_socket)
+    message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
+    Resp, Sid, SigPG = socket_functions.split_message(message)
+    checkSid = socket_functions.concat_messages(Resp, Sid, amount, NC)
+    if crypto_lib.verify_signature_is_valid(SigPG, checkSid, public_key_rsa_pg):
+        print("The signature is from the PG ")
+    else:
+        print("The signature is invalid")
+    Resp = Resp.decode()
+    print(Resp)
 
 
 def client_program():
@@ -123,8 +134,8 @@ def client_program():
     merchant_SID = recv_message_2(merchant_socket)
 
     # Exchange sub-protocol
-    send_message_3(merchant_socket, merchant_SID, client_temporary_cert)
-    recv_message_6(merchant_socket)
+    NC, amount = send_message_3(merchant_socket, merchant_SID, client_temporary_cert)
+    recv_message_6(merchant_socket, NC, amount)
 
     merchant_socket.close()  # close the connection
 
