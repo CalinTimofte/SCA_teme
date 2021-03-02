@@ -67,6 +67,7 @@ def generate_cert_client():
 
 
 def send_message_1(client_socket):
+    print("Sent 1st message.")
     client_temporary_cert = generate_cert_client()
     cert_to_send = crypto_lib.serialize_cert(client_temporary_cert)
     encrypted_cert_to_send = crypto_lib.encrypt_AES(cert_to_send, aes_key_merchant, aes_iv_merchant)
@@ -78,6 +79,7 @@ def send_message_1(client_socket):
 
 
 def recv_message_2(client_socket):
+    print("Received 2nd message.")
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
     merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
@@ -90,6 +92,7 @@ def recv_message_2(client_socket):
 
 
 def send_message_3(client_socket, merchant_SID, client_temporary_cert):
+    print("Sent 3rd message.")
     NC = random.randint(100000, 10000000000)
     amount = b"500"
     PI = socket_functions.concat_messages(b"123456789101", b"11/22", b"123", merchant_SID, amount,
@@ -111,19 +114,21 @@ def send_message_3(client_socket, merchant_SID, client_temporary_cert):
 
 
 def recv_message_6(client_socket, amount, NC):
+    print("Received 6th message.")
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
     Resp, Sid, SigPG = socket_functions.split_message(message)
     checkSid = socket_functions.concat_messages(Resp, Sid, amount, crypto_lib.int_to_bytes(NC))
     if crypto_lib.verify_signature_is_valid(SigPG, checkSid, public_key_rsa_pg):
-        print("The signature is from the PG ")
+        print("The signature is from the PG. ")
     else:
-        print("The signature is invalid")
+        print("The signature is invalid.")
     Resp = Resp.decode()
     print(Resp)
 
 
 def client_program():
+    print("<<<<<Starting the E-Commerce Protocol>>>>")
     host = socket.gethostname()  # as both code is running on same pc
     port = 5000  # socket server port number
     merchant_socket = socket.socket()  # instantiate
