@@ -26,6 +26,7 @@ with open("Keys/client_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+
 class TransactionSim:
     def __init__(self):
         self.bank_accounts = self.get_bank_accounts()
@@ -52,6 +53,21 @@ class TransactionSim:
         print("Merchant balance is: " + str(self.bank_accounts[1][1]))
 
 
+def check_card_details(CardN, CardExp, CCode):
+    if (CardN.decode() == "123456789101" and CardExp.decode() == "11/22" and CCode.decode() == "123"):
+        return True
+    else:
+        return False
+
+
+def check_if_Nonce_sid_combo_fresh(Nonce, SID):
+    return True
+
+
+def check_if_client_cert_fresh(cert):
+    return True
+
+
 def recv_message_4(merchant_conn):
     message = socket_functions.socket_recv(merchant_conn)
     message, AES_key_PG_M, AES_IV_PG_M = socket_functions.split_message(message)
@@ -70,6 +86,8 @@ def recv_message_4(merchant_conn):
         print("The signature is from the merchant")
     else:
         print("The signature is invalid")
+        resp = "Denied"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     # Check client signature
     client_sig_msg = socket_functions.concat_messages(CardN, CardExp, CCode, sid, amount, PubKC, NC, M)
@@ -77,9 +95,30 @@ def recv_message_4(merchant_conn):
         print("The signature is from the client ")
     else:
         print("The signature is invalid")
+        resp = "Denied"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
-    resp = "Accepted"
-    return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
+    if check_card_details(CardN, CardExp, CCode):
+        print("The card details are correct")
+    else:
+        print("Card details invalid")
+        resp = "Denied, bad card details"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
+
+    if not check_if_Nonce_sid_combo_fresh(NC, sid):
+        resp = "Denied, replay attack"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
+
+    if not check_if_client_cert_fresh(PubKC):
+        resp = "Denied, replay attack"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
+
+    transaction_mock = TransactionSim()
+    if transaction_mock.client_has_enough_balance(int(amount.decode())):
+        transaction_mock.perform_transaction(int(amount.decode()))
+        transaction_mock.show_balance()
+        resp = "Accepted, transaction performed"
+        return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
 
 def send_message_5(merchant_conn, resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M):
