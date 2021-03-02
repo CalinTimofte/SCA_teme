@@ -16,6 +16,15 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
+with open("Keys/merchant_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_merchant = serialization.load_pem_public_key(
+        key_file.read()
+    )
+
+with open("Keys/client_rsa_pub_key.txt", "rb") as key_file:
+    public_key_rsa_client = serialization.load_pem_public_key(
+        key_file.read()
+    )
 
 class TransactionSim:
     def __init__(self):
@@ -53,14 +62,32 @@ def recv_message_4(merchant_conn):
     AES_key_PG_C = crypto_lib.decrypt_RSA(AES_key_PG_C, private_key_rsa)
     AES_IV_PG_C = crypto_lib.decrypt_RSA(AES_IV_PG_C, private_key_rsa)
     PM = crypto_lib.decrypt_AES(PM, AES_key_PG_C, AES_IV_PG_C)
-    CardN, CardExp, CCode, sid, amount, NC, M, sigC = socket_functions.split_message(PM)
-    # sum = 0
-    # for i in socket_functions.split_message(PM):
-    #     print(i)
+    CardN, CardExp, CCode, sid, amount, PubKC, NC, M, sigC = socket_functions.split_message(PM)
+
+    # Check merchant signature
+    merchant_sig_msg = socket_functions.concat_messages(sid, PubKC, amount)
+    if crypto_lib.verify_signature_is_valid(sigM, merchant_sig_msg, public_key_rsa_merchant):
+        print("The signature is from the merchant")
+    else:
+        print("The signature is invalid")
+
+    # Check client signature
+    client_sig_msg = socket_functions.concat_messages(CardN, CardExp, CCode, sid, amount, PubKC, NC, M)
+    if crypto_lib.verify_signature_is_valid(sigC, client_sig_msg, public_key_rsa_client):
+        print("The signature is from the client ")
+    else:
+        print("The signature is invalid")
+
+    resp = "Accepted"
+    return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
 
-def send_message_5(merchant_conn):
-    pass
+def send_message_5(merchant_conn, resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M):
+    message_to_sign = socket_functions.concat_messages(resp, sid, amount, NC)
+    signature = crypto_lib.sign(message_to_sign, private_key_rsa)
+    message_to_send = socket_functions.concat_messages(resp, sid, signature)
+    message_to_send = crypto_lib.encrypt_AES(message_to_send, AES_key_PG_M, AES_IV_PG_M)
+    socket_functions.socket_send(merchant_conn, message_to_send)
 
 
 def server_program():
@@ -78,8 +105,8 @@ def server_program():
     print("Connection from: " + str(merchant_address))
 
     # Exchange sub-protocol
-    recv_message_4(merchant_conn)
-    send_message_5(merchant_conn)
+    resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M = recv_message_4(merchant_conn)
+    send_message_5(merchant_conn, resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M)
 
     merchant_conn.close()  # close the connection
 
