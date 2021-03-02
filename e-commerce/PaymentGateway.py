@@ -69,6 +69,7 @@ def check_if_client_cert_fresh(cert):
 
 
 def recv_message_4(merchant_conn):
+    print("Received 4th message")
     message = socket_functions.socket_recv(merchant_conn)
     message, AES_key_PG_M, AES_IV_PG_M = socket_functions.split_message(message)
     AES_key_PG_M = crypto_lib.decrypt_RSA(AES_key_PG_M, private_key_rsa)
@@ -125,6 +126,7 @@ def recv_message_4(merchant_conn):
 
 
 def send_message_5(merchant_conn, resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M):
+    print("Sent 5th message.")
     message_to_sign = socket_functions.concat_messages(resp, sid, amount, NC)
     signature = crypto_lib.sign(message_to_sign, private_key_rsa)
     message_to_send = socket_functions.concat_messages(resp, sid, signature)

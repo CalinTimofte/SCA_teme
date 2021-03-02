@@ -40,6 +40,7 @@ def generate_SID():
 
 
 def recv_message_1(client_conn):
+    print("Received 1st message")
     message = socket_functions.socket_recv(client_conn)
     client_certificate, aes_key, aes_iv = socket_functions.split_message(message)
     aes_key = crypto_lib.decrypt_RSA(aes_key, private_key_rsa)
@@ -50,6 +51,7 @@ def recv_message_1(client_conn):
 
 
 def send_message_2(client_conn, aes_key, aes_iv):
+    print("Sent 2nd message.")
     SID = generate_SID()
     print(crypto_lib.bytes_to_int(SID))
     SID_signature = crypto_lib.sign(SID, private_key_rsa)
@@ -60,6 +62,7 @@ def send_message_2(client_conn, aes_key, aes_iv):
 
 
 def recv_message_3(client_conn, aes_key, aes_iv):
+    print("Received 3rd message")
     message = socket_functions.socket_recv(client_conn)
     message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
     PM, OrderDesc, SID, amount, NC, sig_PO, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted = socket_functions.split_message(
@@ -74,6 +77,7 @@ def recv_message_3(client_conn, aes_key, aes_iv):
 
 def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_client_PG_encrypted,
                    aes_iv_client_PG_encrypted):
+    print("Sent 4th message.")
     sigM = crypto_lib.sign(socket_functions.concat_messages(SID, crypto_lib.serialize_cert(client_certificate), amount),
                            private_key_rsa)
     message_to_send = socket_functions.concat_messages(PM, sigM, aes_key_client_PG_encrypted,
@@ -86,6 +90,7 @@ def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_clien
 
 
 def recv_message_5(pg_socket, amount, NC):
+    print("Received 5th message")
     message = socket_functions.socket_recv(pg_socket)
     message = crypto_lib.decrypt_AES(message, aes_key_merchant_pg, aes_iv_merchant_pg)
     Resp, Sid, SigPG = socket_functions.split_message(message)
@@ -100,6 +105,7 @@ def recv_message_5(pg_socket, amount, NC):
 
 
 def send_message_6(client_conn, Resp, aes_key_client_merchant, aes_iv_client_merchant):
+    print("Sent 6th message.")
     message_to_send = crypto_lib.encrypt_AES(Resp, aes_key_client_merchant, aes_iv_client_merchant)
     socket_functions.socket_send(client_conn, message_to_send)
 
