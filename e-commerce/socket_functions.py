@@ -6,8 +6,10 @@ def socket_recv(socket):
     message = socket.recv(8192)
     return message
 
+
 def split_message(message):
     return message.split(b"EENDD")
+
 
 def concat_messages(*args):
     # I use the b"EENDD" to be able to split concatenated strings on arrival

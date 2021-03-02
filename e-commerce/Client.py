@@ -114,7 +114,7 @@ def recv_message_6(client_socket, amount, NC):
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
     Resp, Sid, SigPG = socket_functions.split_message(message)
-    checkSid = socket_functions.concat_messages(Resp, Sid, amount, NC)
+    checkSid = socket_functions.concat_messages(Resp, Sid, amount, crypto_lib.int_to_bytes(NC))
     if crypto_lib.verify_signature_is_valid(SigPG, checkSid, public_key_rsa_pg):
         print("The signature is from the PG ")
     else:
@@ -135,7 +135,7 @@ def client_program():
 
     # Exchange sub-protocol
     NC, amount = send_message_3(merchant_socket, merchant_SID, client_temporary_cert)
-    recv_message_6(merchant_socket, NC, amount)
+    recv_message_6(merchant_socket, amount, NC)
 
     merchant_socket.close()  # close the connection
 

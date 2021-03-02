@@ -47,6 +47,7 @@ def encrypt_RSA(plaintext, key):
     )
     return ciphertext
 
+
 def serialize_priv_RSA_key(key):
     key_bytes = key.private_bytes(
         encoding=serialization.Encoding.DER,
@@ -55,12 +56,14 @@ def serialize_priv_RSA_key(key):
     )
     return key_bytes
 
+
 def serialize_pub_RSA_key(key):
     key_bytes = key.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
     return key_bytes
+
 
 def decrypt_RSA(ciphertext, key):
     plaintext = key.decrypt(
@@ -102,7 +105,7 @@ def sign(message, key):
     return sig
 
 
-def verify_signature_is_valid(signature, message,  key):
+def verify_signature_is_valid(signature, message, key):
     try:
         key.verify(
             signature,
@@ -117,8 +120,10 @@ def verify_signature_is_valid(signature, message,  key):
     except:
         return False
 
+
 def int_to_bytes(num):
     return num.to_bytes(num.bit_length(), 'big')
+
 
 def bytes_to_int(num):
     return int.from_bytes(num, 'big')
