@@ -7,11 +7,11 @@ def socket_recv(socket):
     return message
 
 def split_message(message):
-    return message.split(b"END")
+    return message.split(b"EENDD")
 
 def concat_messages(*args):
-    # I use the b"END" to be able to split concatenated strings on arrival
+    # I use the b"EENDD" to be able to split concatenated strings on arrival
     message = args[0]
     for i in args[1:]:
-        message += b"END" + i
+        message += b"EENDD" + i
     return message
