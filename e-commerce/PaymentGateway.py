@@ -53,11 +53,15 @@ def recv_message_4(merchant_conn):
     AES_key_PG_C = crypto_lib.decrypt_RSA(AES_key_PG_C, private_key_rsa)
     AES_IV_PG_C = crypto_lib.decrypt_RSA(AES_IV_PG_C, private_key_rsa)
     PM = crypto_lib.decrypt_AES(PM, AES_key_PG_C, AES_IV_PG_C)
-    CardN, CardExp, CCode, sid, amount, NC, M, sigC = socket_functions.split_message(PM)
+    CardN, CardExp, CCode, sid, amount,PubKC, NC, M, sigC = socket_functions.split_message(PM)
     # sum = 0
     # for i in socket_functions.split_message(PM):
     #     print(i)
 
+    if(CardN.decode()=="123456789101" and CardExp.decode()=="11/22" and CCode.decode()=="123" ):
+        pass
+    else:
+       return False
 
 def send_message_5(merchant_conn):
     pass
