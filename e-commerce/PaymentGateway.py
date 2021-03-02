@@ -116,7 +116,10 @@ def recv_message_4(merchant_conn):
 
     transaction_mock = TransactionSim()
     if transaction_mock.client_has_enough_balance(int(amount.decode())):
+        print("Before transaction:")
+        transaction_mock.show_balance()
         transaction_mock.perform_transaction(int(amount.decode()))
+        print("After transaction:")
         transaction_mock.show_balance()
         resp = b"Accepted, transaction performed"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M

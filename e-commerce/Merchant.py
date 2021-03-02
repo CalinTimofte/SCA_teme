@@ -53,7 +53,7 @@ def recv_message_1(client_conn):
 def send_message_2(client_conn, aes_key, aes_iv):
     print("Sent 2nd message.")
     SID = generate_SID()
-    print(crypto_lib.bytes_to_int(SID))
+    # print(crypto_lib.bytes_to_int(SID))
     SID_signature = crypto_lib.sign(SID, private_key_rsa)
     message_to_send = socket_functions.concat_messages(SID, SID_signature)
     encrypted_message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key, aes_iv)
@@ -82,9 +82,9 @@ def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_clien
                            private_key_rsa)
     message_to_send = socket_functions.concat_messages(PM, sigM, aes_key_client_PG_encrypted,
                                                        aes_iv_client_PG_encrypted)
+    message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key_merchant_pg, aes_iv_merchant_pg)
     encrypted_aes_key_PG = crypto_lib.encrypt_RSA(aes_key_merchant_pg, public_key_rsa_pg)
     encrypted_aes_iv_PG = crypto_lib.encrypt_RSA(aes_iv_merchant_pg, public_key_rsa_pg)
-    message_to_send = crypto_lib.encrypt_AES(message_to_send, aes_key_merchant_pg, aes_iv_merchant_pg)
     message_to_send = socket_functions.concat_messages(message_to_send, encrypted_aes_key_PG, encrypted_aes_iv_PG)
     socket_functions.socket_send(pg_socket, message_to_send)
 

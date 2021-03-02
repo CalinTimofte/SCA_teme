@@ -83,7 +83,7 @@ def recv_message_2(client_socket):
     message = socket_functions.socket_recv(client_socket)
     message = crypto_lib.decrypt_AES(message, aes_key_merchant, aes_iv_merchant)
     merchant_SID, merchant_SID_signature = socket_functions.split_message(message)
-    print(crypto_lib.bytes_to_int(merchant_SID))
+    # print(crypto_lib.bytes_to_int(merchant_SID))
     if crypto_lib.verify_signature_is_valid(merchant_SID_signature, merchant_SID, public_key_rsa_merchant):
         print("The signature is from the merchant")
     else:
@@ -133,7 +133,7 @@ def client_program():
     port = 5000  # socket server port number
     merchant_socket = socket.socket()  # instantiate
     merchant_socket.connect((host, port))  # connect to the server
-    print(type(public_key_rsa))
+    # print(type(public_key_rsa))
     # Setup sub-protocol
     client_temporary_cert = send_message_1(merchant_socket)
     merchant_SID = recv_message_2(merchant_socket)
