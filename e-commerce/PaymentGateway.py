@@ -16,7 +16,7 @@ with open("Keys/pg_rsa_pub_key.txt", "rb") as key_file:
         key_file.read()
     )
 
-    
+
 class TransactionSim:
     def __init__(self):
         self.bank_accounts = self.get_bank_accounts()
@@ -42,6 +42,7 @@ class TransactionSim:
         print("Client balance is: " + str(self.bank_accounts[0][1]))
         print("Merchant balance is: " + str(self.bank_accounts[1][1]))
 
+
 def recv_message_4(merchant_conn):
     message = socket_functions.socket_recv(merchant_conn)
     message, AES_key_PG_M, AES_IV_PG_M = socket_functions.split_message(message)
@@ -56,7 +57,6 @@ def recv_message_4(merchant_conn):
     # sum = 0
     # for i in socket_functions.split_message(PM):
     #     print(i)
-
 
 
 def send_message_5(merchant_conn):
@@ -82,6 +82,7 @@ def server_program():
     send_message_5(merchant_conn)
 
     merchant_conn.close()  # close the connection
+
 
 if __name__ == '__main__':
     server_program()
