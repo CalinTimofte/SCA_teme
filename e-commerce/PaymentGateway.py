@@ -86,7 +86,7 @@ def recv_message_4(merchant_conn):
         print("The signature is from the merchant")
     else:
         print("The signature is invalid")
-        resp = "Denied"
+        resp = b"Denied"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     # Check client signature
@@ -95,29 +95,29 @@ def recv_message_4(merchant_conn):
         print("The signature is from the client ")
     else:
         print("The signature is invalid")
-        resp = "Denied"
+        resp = b"Denied"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     if check_card_details(CardN, CardExp, CCode):
         print("The card details are correct")
     else:
         print("Card details invalid")
-        resp = "Denied, bad card details"
+        resp = b"Denied, bad card details"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     if not check_if_Nonce_sid_combo_fresh(NC, sid):
-        resp = "Denied, replay attack"
+        resp = b"Denied, replay attack"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     if not check_if_client_cert_fresh(PubKC):
-        resp = "Denied, replay attack"
+        resp = b"Denied, replay attack"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
     transaction_mock = TransactionSim()
     if transaction_mock.client_has_enough_balance(int(amount.decode())):
         transaction_mock.perform_transaction(int(amount.decode()))
         transaction_mock.show_balance()
-        resp = "Accepted, transaction performed"
+        resp = b"Accepted, transaction performed"
         return resp, sid, amount, NC, AES_key_PG_M, AES_IV_PG_M
 
 
