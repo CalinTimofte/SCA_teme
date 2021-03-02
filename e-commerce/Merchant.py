@@ -85,11 +85,13 @@ def send_message_4(pg_socket, PM, SID, amount, client_certificate, aes_key_clien
     socket_functions.socket_send(pg_socket, message_to_send)
 
 
+
 def recv_message_5(pg_socket, amount, NC):
     message = socket_functions.socket_recv(pg_socket)
     message = crypto_lib.decrypt_AES(message, aes_key, aes_iv)
     Resp, Sid, SigPG = socket_functions.split_message(message)
     checkSid = socket_functions.concat_messages(Resp, Sid, amount, Nc)
+
     if crypto_lib.verify_signature_is_valid(sig_PO, checkSid, public_key_rsa_pg):
         print("The signature is from the PG ")
     else:
@@ -125,6 +127,7 @@ def server_program():
     pg_socket = socket.socket()  # instantiate
     pg_socket.connect((host, pg_port))  # connect to the server
     #
+
     PM, amount, aes_key_client_PG_encrypted, aes_iv_client_PG_encrypted, NC = recv_message_3(client_conn,
                                                                                              aes_key_client_merchant,
                                                                                              aes_iv_client_merchant)
@@ -132,6 +135,7 @@ def server_program():
                    aes_iv_client_PG_encrypted)
 
     Response = recv_message_5(pg_socket, amount, NC)
+
     # send_message_6(client_conn)
 
     pg_socket.close()
