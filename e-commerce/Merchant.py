@@ -100,9 +100,13 @@ def recv_message_5(pg_socket, amount, NC):
     return return_message
 
 
-def send_message_6(client_conn):
-    pass
-
+def send_message_6(client_conn, Resp, SID,amount, NC):
+    sigPG= crypto_lib.sign(socket_functions.concat_messages(Resp,SID,amount,NC), private_key_rsa)
+    message_to_encrypt=socket_functions.concat_messages(Resp,SID,sigPG)
+    encrypted_aes_key_C = crypto_lib.encrypt_RSA(aes_key_merchant_pg, public_key_rsa_client)
+    encrypted_aes_iv_C = crypto_lib.encrypt_RSA(aes_iv_merchant_pg, public_key_rsa_client)
+    message_to_send = crypto_lib.encrypt_AES(message_to_encrypt, aes_key_merchant_client, aes_iv_merchant_client)
+    socket_functions.socket_send(client_conn, message_to_send)
 
 def server_program():
     # get the hostname
@@ -137,7 +141,7 @@ def server_program():
 
     return_message = recv_message_5(pg_socket, amount, NC)
 
-    # send_message_6(client_conn)
+    send_message_6(client_conn, Resp, SID,amount, NC)
 
     pg_socket.close()
     client_conn.close()  # close the connection
